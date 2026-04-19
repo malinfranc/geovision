@@ -1,6 +1,6 @@
 import rasterio
 import geopandas as gpd
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, cm
 from scipy.ndimage import binary_opening
 import folium
 from folium.plugins import Draw, MeasureControl
@@ -15,6 +15,7 @@ class GlobalAnalysis:
 
     def __init__(self,gdf_filename, mnt_filename,):
 
+        self.dtm_anomaly = None
         self.mnt_path = None
         self.gdf_path = None
         self.kiging_results = None
@@ -299,7 +300,7 @@ class GlobalAnalysis:
 
         onecode.Logger.info("saving map_anomalie...")
         plt.figure(figsize=(10, 8))
-        dtm_anomaly = np.zeros_like(list(self.kiging_results.values())[0])
+        self.dtm_anomaly = np.zeros_like(list(self.kiging_results.values())[0])
 
         x = self.gdf_analyzed.geometry.x.values
         y = self.gdf_analyzed.geometry.y.values
@@ -307,7 +308,7 @@ class GlobalAnalysis:
         for el, zi in self.kiging_results.items():
             mask = zi >= np.percentile(zi, 98)
             mask_clean = binary_opening(mask, structure=np.ones((3, 3)))
-            dtm_anomaly += mask_clean.astype(int)
+            self.dtm_anomaly += mask_clean.astype(int)
 
             plt.imshow(
                 mask_clean,
@@ -341,13 +342,14 @@ class GlobalAnalysis:
             make_path=True
         )
         self.save_geotiff(
-            np.flipud(dtm_anomaly.astype("float32")),
+            np.flipud(self.dtm_anomaly.astype("float32")),
             x,
             y,
             ouput_dtm_file
         )
 
         onecode.Logger.info("Finish map_anomalie")
+
 
     def interactive_map(self):
         """"""
@@ -391,19 +393,16 @@ class GlobalAnalysis:
                 vmin=0, vmax=1
             )
 
-            ax.axis("off")
-            img_path = f"data/outputs/temp/{el}.png"
-            output_file = onecode.file_output(
-                key=f"temp_{el}",
-                value=f"temp/{el}.png",
-                make_path=True
-            )
-            plt.savefig(output_file, bbox_inches='tight', pad_inches=0)
-            plt.close()
+            img = self.kiging_results[el]
+            if isinstance(img, np.ma.MaskedArray):
+                img = img.filled(np.nan)
 
-            # ----- add raster -----
+            img = (img - np.nanmin(img)) / (np.nanmax(img) - np.nanmin(img))
+            img = np.nan_to_num(img)
+            cmap = cm.get_cmap("viridis")
+            img = cmap(img)  # RGBA
             folium.raster_layers.ImageOverlay(
-                image=img_path,
+                image=np.flipud(img),
                 bounds=[
                     [gdf_wgs84.geometry.y.min(), gdf_wgs84.geometry.x.min()],
                     [gdf_wgs84.geometry.y.max(), gdf_wgs84.geometry.x.max()]
@@ -412,6 +411,7 @@ class GlobalAnalysis:
                 name=f"Krigeage {el}",
                 show=False
             ).add_to(m)
+
 
             # ----- interactive points -----
             fg = folium.FeatureGroup(name=f"Points {el}", show=False)
@@ -447,8 +447,16 @@ class GlobalAnalysis:
             show=False
         ).add_to(m)
 
+        img = self.dtm_anomaly
+        if isinstance(img, np.ma.MaskedArray):
+            img = img.filled(np.nan)
+
+        img = (img - np.nanmin(img)) / (np.nanmax(img) - np.nanmin(img))
+        img = np.nan_to_num(img)
+        cmap = cm.get_cmap("viridis")
+        img = cmap(img)
         ImageOverlay(
-            image="data/outputs/output/maps/map_anomalie_zone.png",
+            image=np.flipud(img),
             bounds=[
                 [gdf_wgs84.geometry.y.min(), gdf_wgs84.geometry.x.min()],
                 [gdf_wgs84.geometry.y.max(), gdf_wgs84.geometry.x.max()]
