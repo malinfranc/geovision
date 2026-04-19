@@ -50,13 +50,13 @@ class GlobalAnalysis:
 
         self.gdf =gpd.read_file(self.gdf_path)
 
-
+        """
         self.mnt_path = onecode.file_input(
         key="TIFF_File_Input",
         value=mnt_filename,
         types = []
-        )
-        self.mnt=rasterio.open(self.mnt_path)
+        )"""
+        self.mnt=rasterio.open(mnt_filename)
 
     def clustering_input_parameter(self):
 

@@ -13,9 +13,13 @@ from flows.global_analysis import GlobalAnalysis
 
 
 def run():
-
+    mnt_path = onecode.file_input(
+        key="TIFF_File_Input",
+        value="C:/Users/HP/Documents/geovision/Données d'entrée/MNT_25M_AMBAZAC_IMAGE_CORR.tif",
+        types=[]
+    )
     global_analysis = GlobalAnalysis(
         gdf_filename ="C:/Users/HP/Documents/geovision/Données d'entrée/Points_geochimie_AMBAZAC.geojson",
-        mnt_filename = "C:/Users/HP/Documents/geovision/Données d'entrée/MNT_25M_AMBAZAC_IMAGE_CORR.tif"
+        mnt_filename = mnt_path
     )
     global_analysis.analyze()
