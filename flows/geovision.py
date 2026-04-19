@@ -17,14 +17,14 @@ def run():
     mnt_path = onecode.file_input(
         key="TIFF_File_Input",
         value="C:/Users/HP/Documents/geovision/Données d'entrée/MNT_25M_AMBAZAC_IMAGE_CORR.tif",
-        label="Select a TIFF file",
-        types=[("Data", ".geojson")]
+        label="select a DTM file",
+        types=[("Data", ".tif")]
     )
 
     gdf_path = onecode.file_input(
         key="GeoJon_File_input",
         value="C:/Users/HP/Documents/geovision/Données d'entrée/Points_geochimie_AMBAZAC.geojson",
-        label="Select an geojson file",
+        label="Select a geojson file",
         types=[("Data", ".geojson")]
     )
 
