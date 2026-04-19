@@ -1,0 +1,11 @@
+onecode>=1,<2
+geopandas
+rasterio
+matplotlib
+pandas
+folium
+numpy
+seaborn
+scipy
+pykrige
+scikit-learn
