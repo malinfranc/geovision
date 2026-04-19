@@ -15,6 +15,8 @@ class GlobalAnalysis:
 
     def __init__(self,gdf_filename, mnt_filename,):
 
+        self.mnt_path = None
+        self.gdf_path = None
         self.kiging_results = None
         self.gdf_analyzed = None
         self.concentrated_elements = None
