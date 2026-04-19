@@ -15,6 +15,7 @@ class GlobalAnalysis:
 
     def __init__(self,gdf_filename, mnt_filename,):
 
+        self.slope = None
         self.dtm_anomaly = None
         self.mnt_path = None
         self.gdf_path = None
@@ -30,6 +31,7 @@ class GlobalAnalysis:
         self.import_data(gdf_filename, mnt_filename)
 
     def analyze(self):
+        """Start the analysis process."""
 
         self.clustering_input_parameter()
         self.mnt_procesing()
@@ -39,6 +41,7 @@ class GlobalAnalysis:
         self.interactive_map()
 
     def import_data(self,gdf_filename,mnt_filename):
+        """load data from gdf and Dem"""
 
         onecode.Logger.info("Importing data...")
 
@@ -47,6 +50,7 @@ class GlobalAnalysis:
         self.mnt=rasterio.open(mnt_filename)
 
     def clustering_input_parameter(self):
+        """Assign parameters for clustering"""
 
         self.distance = onecode.number_input(
             key="Minimum_Distance",
@@ -69,6 +73,7 @@ class GlobalAnalysis:
         onecode.Logger.info("Finish Importing data ")
 
     def mnt_procesing(self):
+        """process Dem file extracting slope"""
 
         onecode.Logger.info("Mnt Procesing...")
 
@@ -82,23 +87,23 @@ class GlobalAnalysis:
 
         dy, dx = np.gradient(filtered_topo, res_y, res_x)
 
-        slope = np.sqrt(dx ** 2 + dy ** 2)  # slope calculation
+        self.slope = np.sqrt(dx ** 2 + dy ** 2)  # slope calculation
         aspect = np.arctan2(dy, dx)
 
         azimuth_rad = np.radians(azimuth)
         altitude_rad = np.radians(altitude)
 
         hillshade = 255 * (  # hillshade calculation
-                np.cos(altitude_rad) * np.cos(slope) +
-                np.sin(altitude_rad) * np.sin(slope) *
+                np.cos(altitude_rad) * np.cos(self.slope) +
+                np.sin(altitude_rad) * np.sin(self.slope) *
                 np.cos(azimuth_rad - aspect)
         )
 
         # Contrast improvement
         p2, p98 = np.percentile(hillshade, (2, 98))
         self.hillshade_stretch = np.clip((hillshade - p2) / (p98 - p2), 0, 1)
-        p2, p98 = np.percentile(slope, (2, 98))
-        slope_stretch = np.clip((slope - p2) / (p98 - p2), 0, 1)
+        p2, p98 = np.percentile(self.slope, (2, 98))
+        slope_stretch = np.clip((self.slope - p2) / (p98 - p2), 0, 1)
 
         # Save slope as DTM
         output_slope_file = onecode.file_output(
@@ -116,6 +121,7 @@ class GlobalAnalysis:
         onecode.Logger.info("Finish mnt procesing")
 
     def save_geotiff(self,e_zi, e_x, e_y, output_path, crs="EPSG:2154"):
+        """save file as geotiff"""
 
         height, width = e_zi.shape
 
@@ -140,6 +146,7 @@ class GlobalAnalysis:
             dst.write(e_zi, 1)
 
     def geochemistry_anomalies(self):
+        """Find and save geochemistry anomalies maps """
 
         onecode.Logger.info("geochemistry anomalies...")
 
@@ -224,7 +231,8 @@ class GlobalAnalysis:
         onecode.Logger.info("Finish geochemistry anomalies")
 
     def kriging(self):
-        """ """
+        """kriging to approximate maps"""
+
         onecode.Logger.info("Kriging...")
 
         # =========== kriging of anomalies ==================
@@ -296,7 +304,7 @@ class GlobalAnalysis:
 
 
     def map_anomalie(self):
-        """"""
+        """Extract the map of all significant anomalies """
 
         onecode.Logger.info("saving map_anomalie...")
         plt.figure(figsize=(10, 8))
@@ -352,7 +360,7 @@ class GlobalAnalysis:
 
 
     def interactive_map(self):
-        """"""
+        """Save an interactive map with all the results"""
 
         onecode.Logger.info("Starting interactive map...")
 
@@ -482,5 +490,10 @@ class GlobalAnalysis:
         m.save(output_map_of_chemical_elements_file)
 
         onecode.Logger.info("Finish interactive map")
+
+    def get_prediction_data(self):
+        """Return data for prediction"""
+
+        return [self.gdf,self.mnt, self.slope]
 
 

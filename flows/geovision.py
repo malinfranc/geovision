@@ -10,6 +10,7 @@
 
 import onecode
 from flows.global_analysis import GlobalAnalysis
+from flows.prediction import Prediction
 
 
 def run():
@@ -33,3 +34,7 @@ def run():
         mnt_filename = mnt_path
     )
     global_analysis.analyze()
+
+    dataset, mnt, slope = global_analysis.get_prediction_data()
+    predictor = Prediction(dataset, mnt, slope)
+    predictor.start_predicton()
