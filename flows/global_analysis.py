@@ -40,7 +40,7 @@ class GlobalAnalysis:
         onecode.Logger.info("Importing data...")
 
         gdf_path = onecode.file_input(
-        key="GeoJsonFile",
+        key="GeoJon_File_input",
         value=gdf_filename,
         )
 
