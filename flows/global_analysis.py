@@ -39,19 +39,22 @@ class GlobalAnalysis:
 
         onecode.Logger.info("Importing data...")
 
-        gdf_path = onecode.file_input(
+        self.gdf_path = onecode.file_input(
         key="GeoJon_File_input",
         value=gdf_filename,
+        label="Select an image",
+        types=[ ]
         )
 
-        self.gdf =gpd.read_file(gdf_path)
+        self.gdf =gpd.read_file(self.gdf_path)
 
 
-        mnt_path = onecode.file_input(
+        self.mnt_path = onecode.file_input(
         key="TIFF_File_Input",
-        value=mnt_filename
+        value=mnt_filename,
+        types = []
         )
-        self.mnt=rasterio.open(mnt_path)
+        self.mnt=rasterio.open(self.mnt_path)
 
     def clustering_input_parameter(self):
 
